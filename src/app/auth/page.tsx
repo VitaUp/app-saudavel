@@ -27,14 +27,14 @@ export default function AuthPage() {
     try {
       if (isLogin) {
         await signIn(email, password)
-        router.push('/home')
+        router.push('/dashboard')
       } else {
         if (!acceptedTerms) {
           alert('Você precisa aceitar os termos de uso')
           return
         }
         await signUp(email, password, fullName)
-        router.push('/quiz/onboarding')
+        router.push('/dashboard')
       }
     } catch (error: any) {
       alert(error.message)

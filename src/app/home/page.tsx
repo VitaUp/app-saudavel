@@ -3,389 +3,413 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { 
+  Home as HomeIcon, 
   Apple, 
   Dumbbell, 
   Moon, 
-  CheckCircle2, 
-  Trophy, 
+  MessageCircle, 
+  User,
   Plus,
-  Camera,
-  Play,
+  Droplet,
+  CheckCircle2,
+  Smile,
+  Meh,
+  Frown,
   TrendingUp,
-  MessageCircle,
-  Settings,
-  User
+  Bell
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
-import { getGreeting } from '@/lib/constants'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 export default function HomePage() {
+  const router = useRouter()
+  const [currentTab, setCurrentTab] = useState('home')
+  const [quizData, setQuizData] = useState<any>(null)
   const [greeting, setGreeting] = useState('')
-  const preferredName = 'João' // Virá do banco de dados
+  const [motivationalMessage, setMotivationalMessage] = useState('')
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    setGreeting(getGreeting('pt-BR'))
+    setMounted(true)
+    
+    // Carregar dados do quiz
+    const data = localStorage.getItem('vitaup_quiz_data')
+    if (data) {
+      setQuizData(JSON.parse(data))
+    }
+
+    // Definir saudação baseada na hora
+    const hour = new Date().getHours()
+    if (hour < 12) {
+      setGreeting('Bom dia')
+    } else if (hour < 18) {
+      setGreeting('Boa tarde')
+    } else {
+      setGreeting('Boa noite')
+    }
+
+    // Definir mensagem motivacional aleatória
+    const motivationalMessages = [
+      'Bora começar leve e terminar forte!',
+      'Você consegue! Vamos com tudo hoje!',
+      'Cada passo conta! Continue assim!',
+      'Tá indo muito bem! Mantém o foco!',
+      'Hoje é dia de superar limites!'
+    ]
+    const randomMessage = motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)]
+    setMotivationalMessage(randomMessage)
   }, [])
 
-  // Dados mockados - virão do Supabase
-  const dailyCalories = {
-    consumed: 1450,
-    target: 2000,
-    remaining: 550,
+  const userName = quizData?.name || 'Campeão'
+  const userLevel = 5
+  const userXP = 450
+  const nextLevelXP = 600
+
+  const handleTabChange = (tab: string) => {
+    setCurrentTab(tab)
+    if (tab === 'dieta') router.push('/dieta')
+    if (tab === 'sono') router.push('/sono')
+    if (tab === 'coach') router.push('/coach')
+    if (tab === 'perfil') router.push('/perfil')
   }
 
-  const macros = {
-    protein: { current: 85, target: 150 },
-    carbs: { current: 180, target: 250 },
-    fat: { current: 45, target: 65 },
-  }
+  // Dados de exemplo
+  const caloriesConsumed = 1450
+  const caloriesGoal = 2000
+  const caloriesProgress = (caloriesConsumed / caloriesGoal) * 100
 
-  const todayWorkout = {
-    name: 'Treino de Peito e Tríceps',
-    duration: 45,
-    exercises: 8,
-  }
+  const sleepHours = 7.5
+  const sleepGoal = 8
+  const sleepProgress = (sleepHours / sleepGoal) * 100
 
-  const lastNightSleep = {
-    hours: 7.5,
-    quality: 85,
-  }
-
-  const vitaPoints = 1250
-  const level = 12
-  const xpProgress = 65
-
-  return (
-    <div className="min-h-screen bg-[#F7F7F7] pb-20">
-      {/* Header */}
-      <div className="bg-gradient-to-br from-[#FF6A3D] to-[#FF8A5D] px-4 pt-12 pb-8 rounded-b-3xl">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-center justify-between mb-6">
+  // Evitar hydration mismatch - renderizar conteúdo estático primeiro
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-white pb-24">
+        <div className="bg-gradient-to-br from-[#AEE2FF] to-[#62D8B5] text-[#0A0A0A] p-8 rounded-b-3xl shadow-lg">
+          <div className="flex items-start justify-between mb-4">
             <div>
-              <h1 className="text-3xl font-bold text-white mb-1">
-                {greeting}, {preferredName}! 👋
+              <h1 className="text-2xl font-bold mb-1">
+                Carregando...
               </h1>
-              <p className="text-white/90">Vamos conquistar o dia!</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Link href="/profile">
-                <Button variant="ghost" size="icon" className="rounded-full bg-white/20 hover:bg-white/30">
-                  <User className="w-5 h-5 text-white" />
-                </Button>
-              </Link>
-              <Link href="/settings">
-                <Button variant="ghost" size="icon" className="rounded-full bg-white/20 hover:bg-white/30">
-                  <Settings className="w-5 h-5 text-white" />
-                </Button>
-              </Link>
-            </div>
-          </div>
-
-          {/* XP Card */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white/10 backdrop-blur-lg rounded-2xl p-4 border border-white/20"
-          >
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <Trophy className="w-5 h-5 text-[#F4C430]" />
-                <span className="text-white font-semibold">Nível {level}</span>
-              </div>
-              <span className="text-white/90 text-sm">{vitaPoints} VP</span>
-            </div>
-            <Progress value={xpProgress} className="h-2 bg-white/20" />
-            <p className="text-white/80 text-xs mt-2">
-              {100 - xpProgress}% para o próximo nível
-            </p>
-          </motion.div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-4 -mt-4">
-        {/* CoachUp Message */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2 }}
-          className="bg-gradient-to-r from-[#1E90FF] to-[#7B61FF] rounded-2xl p-4 mb-6 shadow-lg"
-        >
-          <div className="flex items-start gap-3">
-            <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center flex-shrink-0">
-              <span className="text-2xl">🧠</span>
-            </div>
-            <div className="flex-1">
-              <p className="text-white font-medium mb-1">CoachUp diz:</p>
-              <p className="text-white/90 text-sm">
-                "Bora lá! Você já está 65% mais perto do próximo nível. Que tal começar o treino de hoje? 💪"
+              <p className="text-[#0A0A0A]/70 text-sm">
+                Preparando seu dia...
               </p>
             </div>
           </div>
-        </motion.div>
+        </div>
+      </div>
+    )
+  }
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
-          <Link href="/diet/add-meal">
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-all"
-            >
-              <div className="w-12 h-12 bg-[#3BAEA0]/10 rounded-xl flex items-center justify-center mx-auto mb-2">
-                <Plus className="w-6 h-6 text-[#3BAEA0]" />
-              </div>
-              <p className="text-xs font-medium text-[#0D0D0D]">Adicionar Refeição</p>
-            </motion.button>
-          </Link>
-
-          <Link href="/diet/scan">
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-all"
-            >
-              <div className="w-12 h-12 bg-[#3BAEA0]/10 rounded-xl flex items-center justify-center mx-auto mb-2">
-                <Camera className="w-6 h-6 text-[#3BAEA0]" />
-              </div>
-              <p className="text-xs font-medium text-[#0D0D0D]">Foto da Refeição</p>
-            </motion.button>
-          </Link>
-
-          <Link href="/workout/start">
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-all"
-            >
-              <div className="w-12 h-12 bg-[#1E90FF]/10 rounded-xl flex items-center justify-center mx-auto mb-2">
-                <Play className="w-6 h-6 text-[#1E90FF]" />
-              </div>
-              <p className="text-xs font-medium text-[#0D0D0D]">Iniciar Treino</p>
-            </motion.button>
-          </Link>
+  return (
+    <div className="min-h-screen bg-white pb-24">
+      {/* Header com Saudação CoachUp */}
+      <div className="bg-gradient-to-br from-[#AEE2FF] to-[#62D8B5] text-[#0A0A0A] p-8 rounded-b-3xl shadow-lg">
+        <div className="flex items-start justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold mb-1">
+              {greeting}, {userName}! 👋
+            </h1>
+            <p className="text-[#0A0A0A]/70 text-sm">
+              {motivationalMessage}
+            </p>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-[#0A0A0A] hover:bg-white/20 rounded-full transition-all duration-300"
+          >
+            <Bell className="w-5 h-5" />
+          </Button>
         </div>
 
-        {/* Diet Card */}
-        <Link href="/diet">
+        {/* Gamificação */}
+        <div className="bg-white/20 backdrop-blur-sm rounded-3xl p-6 border border-white/30">
+          <div className="flex items-center gap-4 mb-3">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#FFD700] to-[#FFA500] flex items-center justify-center text-3xl shadow-lg">
+              🏆
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm font-semibold text-[#0A0A0A]">Nível {userLevel}</span>
+                <span className="text-xs text-[#0A0A0A]/70">{userXP}/{nextLevelXP} XP</span>
+              </div>
+              <Progress value={(userXP / nextLevelXP) * 100} className="h-2.5 bg-white/30" />
+            </div>
+          </div>
+          <div className="text-sm text-[#0A0A0A]/80">
+            <strong>Missão do dia:</strong> Complete 1 treino e registre 3 refeições
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="px-6 py-8 space-y-8">
+        {/* Cards Principais */}
+        <div className="grid grid-cols-1 gap-6">
+          {/* Nutrição */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            whileHover={{ scale: 1.01 }}
-            className="bg-white rounded-2xl p-6 mb-4 shadow-sm hover:shadow-md transition-all"
+            className="bg-white rounded-3xl p-6 shadow-lg border-2 border-[#0A0A0A]/5"
           >
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-[#3BAEA0]/10 rounded-xl flex items-center justify-center">
-                  <Apple className="w-6 h-6 text-[#3BAEA0]" />
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#62D8B5] to-[#AEE2FF] flex items-center justify-center">
+                  <Apple className="w-7 h-7 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-[#0D0D0D]">Dieta</h3>
-                  <p className="text-sm text-[#3B3B3B]">
-                    {dailyCalories.remaining} kcal restantes
-                  </p>
+                  <h3 className="text-lg font-bold text-[#0A0A0A]">Nutrição</h3>
+                  <p className="text-sm text-[#0A0A0A]/60">{caloriesConsumed} / {caloriesGoal} kcal</p>
                 </div>
               </div>
-              <TrendingUp className="w-5 h-5 text-[#3BAEA0]" />
+              <Button
+                size="sm"
+                className="bg-[#62D8B5] hover:bg-[#62D8B5]/90 text-white rounded-full h-10 w-10 p-0 transition-all duration-300 hover:scale-110"
+              >
+                <Plus className="w-5 h-5" />
+              </Button>
             </div>
-
-            {/* Calories Progress */}
-            <div className="mb-4">
-              <div className="flex justify-between text-sm mb-2">
-                <span className="text-[#3B3B3B]">Calorias</span>
-                <span className="font-semibold text-[#0D0D0D]">
-                  {dailyCalories.consumed} / {dailyCalories.target}
-                </span>
-              </div>
-              <Progress 
-                value={(dailyCalories.consumed / dailyCalories.target) * 100} 
-                className="h-2 bg-[#F7F7F7]"
-              />
-            </div>
-
-            {/* Macros */}
-            <div className="grid grid-cols-3 gap-3">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-[#FF6A3D]">
-                  {macros.protein.current}g
-                </div>
-                <div className="text-xs text-[#3B3B3B]">
-                  Proteína
-                </div>
-                <div className="text-xs text-[#3B3B3B]">
-                  de {macros.protein.target}g
-                </div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-[#1E90FF]">
-                  {macros.carbs.current}g
-                </div>
-                <div className="text-xs text-[#3B3B3B]">
-                  Carboidratos
-                </div>
-                <div className="text-xs text-[#3B3B3B]">
-                  de {macros.carbs.target}g
-                </div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-[#F4C430]">
-                  {macros.fat.current}g
-                </div>
-                <div className="text-xs text-[#3B3B3B]">
-                  Gordura
-                </div>
-                <div className="text-xs text-[#3B3B3B]">
-                  de {macros.fat.target}g
-                </div>
-              </div>
+            <Progress value={caloriesProgress} className="h-3 bg-[#0A0A0A]/5 rounded-full" />
+            <div className="mt-4 flex items-center justify-between text-sm">
+              <span className="text-[#0A0A0A]/60">Restam {caloriesGoal - caloriesConsumed} kcal</span>
+              <span className="text-[#62D8B5] font-semibold">{Math.round(caloriesProgress)}%</span>
             </div>
           </motion.div>
-        </Link>
 
-        {/* Workout Card */}
-        <Link href="/workout">
+          {/* Treino */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            whileHover={{ scale: 1.01 }}
-            className="bg-white rounded-2xl p-6 mb-4 shadow-sm hover:shadow-md transition-all"
+            transition={{ delay: 0.1 }}
+            className="bg-white rounded-3xl p-6 shadow-lg border-2 border-[#0A0A0A]/5"
           >
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-[#1E90FF]/10 rounded-xl flex items-center justify-center">
-                  <Dumbbell className="w-6 h-6 text-[#1E90FF]" />
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#AEE2FF] to-[#62D8B5] flex items-center justify-center">
+                  <Dumbbell className="w-7 h-7 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-[#0D0D0D]">Treino de Hoje</h3>
-                  <p className="text-sm text-[#3B3B3B]">{todayWorkout.name}</p>
+                  <h3 className="text-lg font-bold text-[#0A0A0A]">Treino do Dia</h3>
+                  <p className="text-sm text-[#0A0A0A]/60">Treino de Pernas</p>
                 </div>
-              </div>
-              <Play className="w-5 h-5 text-[#1E90FF]" />
-            </div>
-
-            <div className="flex items-center gap-6">
-              <div>
-                <div className="text-2xl font-bold text-[#1E90FF]">
-                  {todayWorkout.duration} min
-                </div>
-                <div className="text-xs text-[#3B3B3B]">Duração</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-[#1E90FF]">
-                  {todayWorkout.exercises}
-                </div>
-                <div className="text-xs text-[#3B3B3B]">Exercícios</div>
               </div>
             </div>
+            <Button
+              className="w-full h-14 bg-gradient-to-r from-[#AEE2FF] to-[#62D8B5] hover:opacity-90 text-[#0A0A0A] font-semibold rounded-full transition-all duration-300 hover:scale-105"
+            >
+              Iniciar Treino
+            </Button>
           </motion.div>
-        </Link>
 
-        {/* Sleep Card */}
-        <Link href="/sleep">
+          {/* Sono */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            whileHover={{ scale: 1.01 }}
-            className="bg-gradient-to-br from-[#0A1929] to-[#1E3A5F] rounded-2xl p-6 mb-4 shadow-sm hover:shadow-md transition-all"
+            transition={{ delay: 0.2 }}
+            className="bg-white rounded-3xl p-6 shadow-lg border-2 border-[#0A0A0A]/5"
           >
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center">
-                  <Moon className="w-6 h-6 text-[#6BB1FF]" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-white">Sono</h3>
-                  <p className="text-sm text-white/70">Última noite</p>
-                </div>
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#62D8B5] to-[#AEE2FF] flex items-center justify-center">
+                <Moon className="w-7 h-7 text-white" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-[#0A0A0A]">Sono</h3>
+                <p className="text-sm text-[#0A0A0A]/60">{sleepHours}h / {sleepGoal}h</p>
               </div>
             </div>
-
-            <div className="flex items-center gap-6">
-              <div>
-                <div className="text-3xl font-bold text-white">
-                  {lastNightSleep.hours}h
-                </div>
-                <div className="text-xs text-white/70">Dormidas</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-[#6BB1FF]">
-                  {lastNightSleep.quality}%
-                </div>
-                <div className="text-xs text-white/70">Qualidade</div>
+            <div className="relative w-28 h-28 mx-auto">
+              <svg className="w-28 h-28 transform -rotate-90">
+                <circle
+                  cx="56"
+                  cy="56"
+                  r="48"
+                  stroke="#0A0A0A"
+                  strokeOpacity="0.05"
+                  strokeWidth="10"
+                  fill="none"
+                />
+                <circle
+                  cx="56"
+                  cy="56"
+                  r="48"
+                  stroke="url(#gradient)"
+                  strokeWidth="10"
+                  fill="none"
+                  strokeDasharray={`${2 * Math.PI * 48}`}
+                  strokeDashoffset={`${2 * Math.PI * 48 * (1 - sleepProgress / 100)}`}
+                  strokeLinecap="round"
+                />
+                <defs>
+                  <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#AEE2FF" />
+                    <stop offset="100%" stopColor="#62D8B5" />
+                  </linearGradient>
+                </defs>
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-2xl font-bold text-[#0A0A0A]">{Math.round(sleepProgress)}%</span>
               </div>
             </div>
           </motion.div>
-        </Link>
+        </div>
 
-        {/* Habits Card */}
-        <Link href="/habits">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-            whileHover={{ scale: 1.01 }}
-            className="bg-white rounded-2xl p-6 mb-4 shadow-sm hover:shadow-md transition-all"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-[#F4C430]/10 rounded-xl flex items-center justify-center">
-                  <CheckCircle2 className="w-6 h-6 text-[#F4C430]" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-[#0D0D0D]">Hábitos</h3>
-                  <p className="text-sm text-[#3B3B3B]">3 de 5 completos hoje</p>
-                </div>
+        {/* Ações Rápidas */}
+        <div>
+          <h3 className="text-xl font-bold text-[#0A0A0A] mb-5">Ações Rápidas</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <Button
+              variant="outline"
+              className="h-24 flex flex-col items-center justify-center gap-2 border-2 border-[#0A0A0A]/10 hover:border-[#62D8B5] hover:bg-[#62D8B5]/5 rounded-2xl transition-all duration-300"
+            >
+              <Apple className="w-7 h-7 text-[#62D8B5]" />
+              <span className="text-sm font-semibold text-[#0A0A0A]">Refeição</span>
+            </Button>
+            
+            <Button
+              variant="outline"
+              className="h-24 flex flex-col items-center justify-center gap-2 border-2 border-[#0A0A0A]/10 hover:border-[#AEE2FF] hover:bg-[#AEE2FF]/5 rounded-2xl transition-all duration-300"
+            >
+              <Droplet className="w-7 h-7 text-[#AEE2FF]" />
+              <span className="text-sm font-semibold text-[#0A0A0A]">Água</span>
+            </Button>
+            
+            <Button
+              variant="outline"
+              className="h-24 flex flex-col items-center justify-center gap-2 border-2 border-[#0A0A0A]/10 hover:border-[#62D8B5] hover:bg-[#62D8B5]/5 rounded-2xl transition-all duration-300"
+            >
+              <CheckCircle2 className="w-7 h-7 text-[#62D8B5]" />
+              <span className="text-sm font-semibold text-[#0A0A0A]">Treino</span>
+            </Button>
+            
+            <Button
+              variant="outline"
+              className="h-24 flex flex-col items-center justify-center gap-2 border-2 border-[#0A0A0A]/10 hover:border-[#AEE2FF] hover:bg-[#AEE2FF]/5 rounded-2xl transition-all duration-300"
+            >
+              <div className="flex gap-1">
+                <Smile className="w-6 h-6 text-[#62D8B5]" />
+                <Meh className="w-6 h-6 text-[#0A0A0A]/30" />
+                <Frown className="w-6 h-6 text-[#0A0A0A]/30" />
               </div>
-              <div className="text-2xl font-bold text-[#F4C430]">60%</div>
+              <span className="text-sm font-semibold text-[#0A0A0A]">Humor</span>
+            </Button>
+          </div>
+        </div>
+
+        {/* Linha do Dia */}
+        <div>
+          <h3 className="text-xl font-bold text-[#0A0A0A] mb-5">Linha do Dia</h3>
+          <div className="space-y-4">
+            <div className="bg-white rounded-2xl p-5 border-2 border-[#0A0A0A]/5 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-[#AEE2FF]/20 flex items-center justify-center flex-shrink-0">
+                <Dumbbell className="w-6 h-6 text-[#AEE2FF]" />
+              </div>
+              <div className="flex-1">
+                <div className="font-semibold text-[#0A0A0A]">Treino de Pernas</div>
+                <div className="text-sm text-[#0A0A0A]/60">08:00 - 45 minutos</div>
+              </div>
+              <CheckCircle2 className="w-6 h-6 text-[#0A0A0A]/20" />
             </div>
-          </motion.div>
-        </Link>
+
+            <div className="bg-white rounded-2xl p-5 border-2 border-[#0A0A0A]/5 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-[#62D8B5]/20 flex items-center justify-center flex-shrink-0">
+                <Apple className="w-6 h-6 text-[#62D8B5]" />
+              </div>
+              <div className="flex-1">
+                <div className="font-semibold text-[#0A0A0A]">Almoço</div>
+                <div className="text-sm text-[#0A0A0A]/60">12:00 - 600 kcal</div>
+              </div>
+              <CheckCircle2 className="w-6 h-6 text-[#0A0A0A]/20" />
+            </div>
+
+            <div className="bg-white rounded-2xl p-5 border-2 border-[#0A0A0A]/5 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-[#AEE2FF]/20 flex items-center justify-center flex-shrink-0">
+                <Moon className="w-6 h-6 text-[#AEE2FF]" />
+              </div>
+              <div className="flex-1">
+                <div className="font-semibold text-[#0A0A0A]">Hora de dormir</div>
+                <div className="text-sm text-[#0A0A0A]/60">22:00 - 8h de sono</div>
+              </div>
+              <Bell className="w-6 h-6 text-[#AEE2FF]" />
+            </div>
+
+            <div className="bg-gradient-to-br from-[#AEE2FF]/10 to-[#62D8B5]/10 rounded-2xl p-5 border-2 border-[#62D8B5]/20 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-[#62D8B5] flex items-center justify-center flex-shrink-0">
+                <TrendingUp className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <div className="font-semibold text-[#0A0A0A]">Alerta da IA</div>
+                <div className="text-sm text-[#0A0A0A]/70">Você está 200 kcal abaixo da meta!</div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#F7F7F7] px-4 py-3 safe-area-bottom">
-        <div className="max-w-4xl mx-auto flex items-center justify-around">
-          <Link href="/home">
-            <Button variant="ghost" size="icon" className="flex flex-col gap-1 h-auto py-2">
-              <div className="w-6 h-6 bg-[#FF6A3D]/10 rounded-lg flex items-center justify-center">
-                <TrendingUp className="w-4 h-4 text-[#FF6A3D]" />
-              </div>
-              <span className="text-xs text-[#FF6A3D] font-medium">Início</span>
-            </Button>
-          </Link>
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-[#0A0A0A]/5 px-6 py-4 safe-area-bottom">
+        <div className="flex items-center justify-around max-w-2xl mx-auto">
+          <button
+            onClick={() => setCurrentTab('home')}
+            className={`flex flex-col items-center gap-1.5 transition-all duration-300 ${
+              currentTab === 'home' ? 'text-[#62D8B5]' : 'text-[#0A0A0A]/40'
+            }`}
+          >
+            <HomeIcon className="w-6 h-6" />
+            <span className="text-xs font-semibold">Home</span>
+          </button>
 
-          <Link href="/diet">
-            <Button variant="ghost" size="icon" className="flex flex-col gap-1 h-auto py-2">
-              <Apple className="w-6 h-6 text-[#3B3B3B]" />
-              <span className="text-xs text-[#3B3B3B]">Dieta</span>
-            </Button>
-          </Link>
+          <button
+            onClick={() => handleTabChange('dieta')}
+            className={`flex flex-col items-center gap-1.5 transition-all duration-300 ${
+              currentTab === 'dieta' ? 'text-[#62D8B5]' : 'text-[#0A0A0A]/40'
+            }`}
+          >
+            <Apple className="w-6 h-6" />
+            <span className="text-xs font-semibold">Dieta</span>
+          </button>
 
-          <Link href="/workout">
-            <Button variant="ghost" size="icon" className="flex flex-col gap-1 h-auto py-2">
-              <Dumbbell className="w-6 h-6 text-[#3B3B3B]" />
-              <span className="text-xs text-[#3B3B3B]">Treino</span>
-            </Button>
-          </Link>
+          <button
+            onClick={() => setCurrentTab('treino')}
+            className={`flex flex-col items-center gap-1.5 transition-all duration-300 ${
+              currentTab === 'treino' ? 'text-[#62D8B5]' : 'text-[#0A0A0A]/40'
+            }`}
+          >
+            <Dumbbell className="w-6 h-6" />
+            <span className="text-xs font-semibold">Treino</span>
+          </button>
 
-          <Link href="/chat">
-            <Button variant="ghost" size="icon" className="flex flex-col gap-1 h-auto py-2">
-              <MessageCircle className="w-6 h-6 text-[#3B3B3B]" />
-              <span className="text-xs text-[#3B3B3B]">Chat</span>
-            </Button>
-          </Link>
+          <button
+            onClick={() => handleTabChange('sono')}
+            className={`flex flex-col items-center gap-1.5 transition-all duration-300 ${
+              currentTab === 'sono' ? 'text-[#62D8B5]' : 'text-[#0A0A0A]/40'
+            }`}
+          >
+            <Moon className="w-6 h-6" />
+            <span className="text-xs font-semibold">Sono</span>
+          </button>
 
-          <Link href="/profile">
-            <Button variant="ghost" size="icon" className="flex flex-col gap-1 h-auto py-2">
-              <User className="w-6 h-6 text-[#3B3B3B]" />
-              <span className="text-xs text-[#3B3B3B]">Perfil</span>
-            </Button>
-          </Link>
+          <button
+            onClick={() => handleTabChange('coach')}
+            className={`flex flex-col items-center gap-1.5 transition-all duration-300 ${
+              currentTab === 'coach' ? 'text-[#62D8B5]' : 'text-[#0A0A0A]/40'
+            }`}
+          >
+            <MessageCircle className="w-6 h-6" />
+            <span className="text-xs font-semibold">Coach</span>
+          </button>
+
+          <button
+            onClick={() => handleTabChange('perfil')}
+            className={`flex flex-col items-center gap-1.5 transition-all duration-300 ${
+              currentTab === 'perfil' ? 'text-[#62D8B5]' : 'text-[#0A0A0A]/40'
+            }`}
+          >
+            <User className="w-6 h-6" />
+            <span className="text-xs font-semibold">Perfil</span>
+          </button>
         </div>
       </div>
     </div>
